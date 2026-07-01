@@ -26,11 +26,11 @@
 **Concept:** None (infrastructure only)
 
 ### Deliverables
-- [ ] FastAPI project scaffold
-- [ ] `docker-compose.yml` (API + PostgreSQL + Qdrant)
-- [ ] `app/core/config.py` (Pydantic `BaseSettings`)
-- [ ] `.env.example`
-- [ ] `/health` endpoint
+- [x] FastAPI project scaffold
+- [x] `docker-compose.yml` (API + PostgreSQL + Qdrant)
+- [x] `app/core/config.py` (Pydantic `BaseSettings`)
+- [x] `.env.example`
+- [x] `/health` endpoint
 
 ### Definition of Done
 - [ ] `docker compose up` starts all three services
