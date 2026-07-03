@@ -10,7 +10,8 @@
 
 - [ ] V0 — Foundation
 - [x] V1 — AI Chat
-- [ ] V2 — AI Reads One Document
+- [x] V2 — AI Reads One Document
+
 - [ ] V3 — Chunking
 - [ ] V4 — Embeddings & Semantic Retrieval
 - [ ] V5 — Vector Database
@@ -59,13 +60,13 @@
 **Concept:** Document ingestion
 
 ### Deliverables
-- [ ] `POST /documents/upload` (PDF only for now)
-- [ ] PDF text extraction (PyMuPDF or pdfplumber)
-- [ ] Full document text injected into the Gemini prompt
+- [x] `POST /documents/upload` (PDF only for now)
+- [x] PDF text extraction (PyMuPDF or pdfplumber)
+- [x] Full document text injected into the Gemini prompt
 
 ### Definition of Done
-- [ ] Upload a 1–3 page PDF, ask a question about it, get a correct grounded answer
-- [ ] Can explain: why does this break on a 50-page PDF?
+- [x] Upload a 1–3 page PDF, ask a question about it, get a correct grounded answer
+- [x] Can explain: why does this break on a 50-page PDF?
 
 ---
 

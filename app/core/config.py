@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     app_name: str = "AgentHub"
     app_version: str = "0.1.0"
     debug: bool = False
+    max_upload_size_mb: int = 5
 
     # PostgreSQL
     postgres_user: str

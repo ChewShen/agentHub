@@ -11,12 +11,16 @@
 
 ## V1 — AI Chat
 1. What is built
-- A stateless `POST /chat` endpoint that sends a message to the Gemini API (`gemini-3.1-flash-lite`) and streams the text response back.
+- Added Gemini API endpoint, can make some communication between user and gemini. Using the model `gemini-3.1-flash-lite`
 
 2. Why Gemini and why this version?
-- Gemini was chosen over other free tiers because it natively supports multimodality (crucial for V2 when we ingest PDFs/images), has a massive context window for testing "naive RAG", and the `google-genai` SDK plays nicely with async FastAPI.
-- This version establishes a baseline. It proves we can talk to an LLM, but quickly highlights the limitation: the model only knows its training data. If we ask it about our private documents, it will fail, setting up the exact problem V2 solves.
+- Why choose Gemini can be look through 2 perspective, budget and limitation. 
+- From budget, out of many other more reputable company, as OpenAI and Anthropic does not provide free tier, Groq itself is fast but suitable for this project as it have a super small context window and can only process pure text compare to Gemini's multimodal.
+- From technical perspective, Gemini have a large context window and better integration and image handling that can be done through the api directly so we dont need to extract the text from the image before processing.
 
 3. Trade-Offs & Tech Debt
-- We instantiated the Gemini client as a global singleton during the FastAPI lifespan. It's pragmatic for now, but in a larger app, proper dependency injection would be better.
-- There is no conversation history (every request is a blank slate) and no retry logic for API failures.
+- Free tier API itself is a trade off as there are hard rate limit per minute/day.
+- While everything is too depending on Google/Gemini itself, if the API somehow out of service, then the whole project is stalled.
+
+4. What happend if you skip this version?
+- The whole RAG/process cannot be continue as there is no service to handle all the input and output and processing itself, it losses the point.

@@ -8,6 +8,7 @@ from fastapi import FastAPI
 
 from app.core.config import get_settings
 from app.routers.chat import router as chat_router
+from app.routers.documents import router as documents_router
 from app.services.llm import init_llm_client
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ app = FastAPI(
 )
 
 app.include_router(chat_router)
+app.include_router(documents_router)
 
 
 @app.get("/health")

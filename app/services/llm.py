@@ -25,6 +25,15 @@ SYSTEM_PROMPT = (
     "If you don't know something, say so — do not make things up."
 )
 
+GROUNDED_PROMPT = (
+    "You are AgentHub, a helpful AI assistant.\n"
+    "Answer questions based ONLY on the provided document context below.\n"
+    "If the answer is not in the document, say so — do not make things up.\n\n"
+    "--- DOCUMENT ---\n"
+    "{context}\n"
+    "--- END DOCUMENT ---"
+)
+
 
 # ---------------------------------------------------------------------------
 # Exceptions
@@ -82,9 +91,10 @@ def _get_client() -> genai.Client:
 # ---------------------------------------------------------------------------
 
 
-async def generate_response(message: str) -> AsyncGenerator[str, None]:
+async def generate_response(message: str, context: str | None = None) -> AsyncGenerator[str, None]:
     """Stream a Gemini response for the given user message.
 
+    If context is provided, it uses a grounded prompt containing the document text.
     Yields text chunks as they arrive from the Gemini API.
 
     Raises:
@@ -92,8 +102,12 @@ async def generate_response(message: str) -> AsyncGenerator[str, None]:
     """
     client = _get_client()
 
+    system_instruction = SYSTEM_PROMPT
+    if context:
+        system_instruction = GROUNDED_PROMPT.format(context=context)
+
     config = types.GenerateContentConfig(
-        system_instruction=SYSTEM_PROMPT,
+        system_instruction=system_instruction,
     )
 
     try:
