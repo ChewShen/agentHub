@@ -137,6 +137,7 @@ Do not start the next version until:
 2. Confirm tests are written.
 3. Identify known limitations or future improvements.
 4. Suggest a Git commit message.
+5. Do not create the `DECISIONS.md` for me, i will write it my own.
 
 ### After each version is complete:
 

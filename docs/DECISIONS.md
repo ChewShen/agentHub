@@ -1,12 +1,39 @@
-# Architecture Decisions
+## V0 — Foundation
+1. What is built
+- For this v0, is just scaffolding, foundation setup and the dcoker for containerize setup. No feature is built yet.
+- By doing `curl http://localhost:8000/health`, the status of the server can be check on
 
-This file tracks the key technical decisions made during the AgentHub roadmap. 
-Each version must add a short entry explaining the problem solved and the approach chosen.
+2. Why all the services?
+- The services like postgreSQL and Qdrant are planned to be add on in future, its added now is to laid the foundation so it wont messed up during the future implementation. Since it was planned, why not just add it if can.
+
+3. Trade-Off
+- There are no fancy folder yet is to minimise and reduce the complexity of the project. Too many unused folder will often lead to messy implementation and the losing track of the actual progress/milestone.
 
 ## V1 — AI Chat
-**Decision:** We implemented a streaming `POST /chat` endpoint using the `google-genai` SDK and FastAPI's `StreamingResponse`.
-**Why:** To establish a baseline LLM connection before introducing any retrieval. We kept the service layer clean (handling client lifecycle and exceptions) so the router only worries about HTTP.
+1. What is built
+- Added Gemini API endpoint, can make some communication between user and gemini. Using the model `gemini-3.1-flash-lite`
+
+2. Why Gemini and why this version?
+- Why choose Gemini can be look through 2 perspective, budget and limitation. 
+- From budget, out of many other more reputable company, as OpenAI and Anthropic does not provide free tier, Groq itself is fast but suitable for this project as it have a super small context window and can only process pure text compare to Gemini's multimodal.
+- From technical perspective, Gemini have a large context window and better integration and image handling that can be done through the api directly so we dont need to extract the text from the image before processing.
+
+3. Trade-Offs & Tech Debt
+- Free tier API itself is a trade off as there are hard rate limit per minute/day.
+- While everything is too depending on Google/Gemini itself, if the API somehow out of service, then the whole project is stalled.
+
+4. What happend if you skip this version?
+- The whole RAG/process cannot be continue as there is no service to handle all the input and output and processing itself, it losses the point.
 
 ## V2 — AI Reads One Document
-**Decision:** We created a single `POST /documents/upload` endpoint that takes a PDF and a question, extracts the text using `PyMuPDF`, and injects the entire text into the Gemini system prompt.
-**Why:** This is the most naïve form of RAG. It proves that passing external knowledge to the model works, but intentionally exposes the context-window limitation by doing no chunking or storage. We chose `PyMuPDF` for its speed and C-based efficiency compared to pure Python alternatives. We chose a single-request flow (process and discard) to keep the scope tight and avoid premature database design.
+1. What is built/added
+- a upload file feature/endpoint is added through `localhost:8000/documents/upload`, and a context for the llm to answer only the content in the context using the document uploaded.
+  
+2. Why uploading whole one document instead of separating it out?
+- The purpose for this version are just for single small pdf file upload. No chuncking the context yet at this point.
+
+3. Trade-off
+- At this point, the api itself does not have the capability to process large amount of data accurately due to its context window, chucking the context out or put them into smaller piece which specific task that the LLMs itself can refer to is the point of the whole RAG.
+  
+4. What happend if you skip this version?
+- Files cannot be upload for the LLM to read/refering/grounding to, making a higher chance of hallucination and losses the point of the whole RAG project.
