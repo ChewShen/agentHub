@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     qdrant_host: str = "qdrant"
     qdrant_port: int = 6333
 
+    # Gemini
+    gemini_api_key: str
+    gemini_model: str = "gemini-3.1-flash-lite"
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

@@ -9,7 +9,7 @@
 ## Progress
 
 - [ ] V0 — Foundation
-- [ ] V1 — AI Chat
+- [x] V1 — AI Chat
 - [ ] V2 — AI Reads One Document
 - [ ] V3 — Chunking
 - [ ] V4 — Embeddings & Semantic Retrieval
@@ -43,14 +43,14 @@
 **Concept:** Calling an LLM
 
 ### Deliverables
-- [ ] `app/services/llm.py` — Gemini API wrapper
-- [ ] `POST /chat` endpoint
-- [ ] Streaming response (`StreamingResponse`)
-- [ ] Basic system prompt
+- [x] `app/services/llm.py` — Gemini API wrapper
+- [x] `POST /chat` endpoint
+- [x] Streaming response (`StreamingResponse`)
+- [x] Basic system prompt
 
 ### Definition of Done
-- [ ] Can ask a general-knowledge question and get a streamed answer
-- [ ] Can explain: what does the model know, and what does it *not* know?
+- [x] Can ask a general-knowledge question and get a streamed answer
+- [x] Can explain: what does the model know, and what does it *not* know?
 
 ---
 
@@ -195,11 +195,11 @@
 
 ## Per-Version Checklist (apply every time)
 
-1. [ ] Read the version's section in [ROADMAP.md](./ROADMAP.md) before starting
-2. [ ] CLI proposes architecture before writing code — review and question it
-3. [ ] Implement, review every generated line
-4. [ ] Run it, break it, fix it
-5. [ ] Write 3–4 sentences in `docs/DECISIONS.md`, in your own words
-6. [ ] Check off Definition of Done items
-7. [ ] Commit with a `feat:` / `fix:` / `docs:` message
+1. [x] Read the version's section in [ROADMAP.md](./ROADMAP.md) before starting
+2. [x] CLI proposes architecture before writing code — review and question it
+3. [x] Implement, review every generated line
+4. [x] Run it, break it, fix it
+5. [x] Write 3–4 sentences in `docs/DECISIONS.md`, in your own words
+6. [x] Check off Definition of Done items
+7. [x] Commit with a `feat:` / `fix:` / `docs:` message
 8. [ ] Update resume bullet if this version adds a new demonstrable skill
