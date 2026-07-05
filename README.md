@@ -21,7 +21,7 @@ The project is built version by version, following a learning-first approach:
 | V8 | Repository Intelligence | Understand code, not just documents |
 | V9 | Evaluation | Prove retrieval quality with metrics |
 
-> **Current version: V3 — Chunking**
+> **Current version: V4 — Embeddings & Semantic Retrieval**
 
 ## Tech Stack
 
@@ -30,6 +30,7 @@ The project is built version by version, following a learning-first approach:
 - **Vector Store:** Qdrant
 - **Containerization:** Docker Compose
 - **LLM:** Google Gemini *(from V1)*
+- **Embeddings:** Gemini Embedding API + numpy cosine similarity *(from V4)*
 
 ## Getting Started
 
@@ -85,7 +86,7 @@ agentHub/
 │   ├── models/               # SQLAlchemy ORM models (Document, Chunk)
 │   ├── routers/              # API endpoints (chat, documents)
 │   ├── schemas/              # Pydantic validation models
-│   └── services/             # Core business logic (chunking, llm, document extraction)
+│   └── services/             # Core business logic (chunking, llm, document extraction, embedding, retrieval)
 ├── tests/                    # Integration and unit tests
 ├── docs/
 │   ├── ROADMAP.md            # Why each version exists
