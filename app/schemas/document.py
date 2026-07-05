@@ -1,15 +1,15 @@
 """Pydantic schemas for the documents endpoints."""
 
+import uuid
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
 class DocumentUploadResponse(BaseModel):
-    """Response body for POST /documents/upload.
-    
-    Note: The actual endpoint returns a StreamingResponse, this model is mainly
-    used for documentation purposes if we were to return a structured response.
-    """
+    """Response body for POST /documents/upload."""
 
+    document_id: uuid.UUID = Field(..., description="The unique ID of the uploaded document.")
     filename: str = Field(..., description="The name of the uploaded PDF file.")
-    pages: int = Field(..., description="Number of pages extracted from the PDF.")
-    text_length: int = Field(..., description="Total length of the extracted text in characters.")
+    chunk_count: int = Field(..., description="Number of text chunks generated.")
+    created_at: datetime = Field(..., description="Timestamp of when the document was uploaded.")

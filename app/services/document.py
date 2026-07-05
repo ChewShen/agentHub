@@ -6,8 +6,14 @@ Responsibilities:
 """
 
 import logging
+import uuid
 
 import fitz  # PyMuPDF
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.document import Chunk, Document
+from app.services.chunking import chunk_text
 
 logger = logging.getLogger(__name__)
 
@@ -63,3 +69,54 @@ async def extract_text_from_pdf(file_bytes: bytes) -> str:
         )
 
     return full_text
+
+
+async def ingest_document(file_bytes: bytes, filename: str, session: AsyncSession) -> tuple[Document, int]:
+    """Extract text from PDF, chunk it, and store in database.
+    
+    Args:
+        file_bytes: The raw bytes of the PDF file.
+        filename: The original filename.
+        session: Database session.
+        
+    Returns:
+        A tuple of (created Document object, number of chunks created).
+    """
+    full_text = await extract_text_from_pdf(file_bytes)
+    chunk_strings = chunk_text(full_text)
+    
+    document = Document(filename=filename)
+    session.add(document)
+    await session.flush()  # to get document.id
+    
+    for i, text in enumerate(chunk_strings):
+        chunk = Chunk(
+            document_id=document.id,
+            chunk_index=i,
+            text=text,
+            source_filename=filename,
+        )
+        session.add(chunk)
+        
+    await session.commit()
+    await session.refresh(document)
+    
+    return document, len(chunk_strings)
+
+
+async def get_document_chunks(document_id: uuid.UUID, session: AsyncSession) -> list[Chunk]:
+    """Retrieve all chunks for a given document.
+    
+    Args:
+        document_id: The UUID of the document.
+        session: Database session.
+        
+    Returns:
+        List of chunks ordered by chunk_index.
+    """
+    result = await session.execute(
+        select(Chunk)
+        .where(Chunk.document_id == document_id)
+        .order_by(Chunk.chunk_index)
+    )
+    return list(result.scalars().all())

@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.core.config import get_settings
+from app.core.database import close_db, init_db
 from app.routers.chat import router as chat_router
 from app.routers.documents import router as documents_router
 from app.services.llm import init_llm_client
@@ -20,7 +21,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     settings = get_settings()
     init_llm_client(settings)
     logger.info("LLM client initialised (model=%s)", settings.gemini_model)
+    await init_db()
     yield
+    await close_db()
 
 
 settings = get_settings()

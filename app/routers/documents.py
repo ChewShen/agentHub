@@ -2,12 +2,13 @@
 
 import logging
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
-from app.services.document import DocumentEmptyError, DocumentExtractionError, extract_text_from_pdf
-from app.services.llm import LLMConfigError, LLMGenerationError, generate_response
+from app.core.database import get_db_session
+from app.schemas.document import DocumentUploadResponse
+from app.services.document import DocumentEmptyError, DocumentExtractionError, ingest_document
 
 logger = logging.getLogger(__name__)
 
@@ -16,15 +17,15 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 
 @router.post(
     "/upload",
-    response_class=StreamingResponse,
-    summary="Upload a PDF and ask a question",
-    description="Upload a PDF file and provide a message. The AI will answer based on the document's content.",
+    response_model=DocumentUploadResponse,
+    summary="Upload a PDF document",
+    description="Upload a PDF file, extract text, split into chunks, and store in the database.",
 )
 async def upload_document(
     file: UploadFile = File(..., description="The PDF file to upload (max 5 MB)."),
-    message: str = Form(..., description="The user's question about the document."),
-) -> StreamingResponse:
-    """Accept a PDF file and a user message, extract text, and stream a grounded response."""
+    session: AsyncSession = Depends(get_db_session),
+) -> DocumentUploadResponse:
+    """Accept a PDF file, chunk it, and store chunks in PostgreSQL."""
     
     # 1. Validate file type
     if file.content_type != "application/pdf":
@@ -59,9 +60,9 @@ async def upload_document(
             },
         )
 
-    # 3. Extract text from PDF
+    # 3. Extract, chunk, and store text
     try:
-        extracted_text = await extract_text_from_pdf(file_bytes)
+        document, chunk_count = await ingest_document(file_bytes, file.filename, session)
     except DocumentEmptyError as exc:
         logger.warning("Empty document uploaded: %s", file.filename)
         raise HTTPException(
@@ -81,27 +82,9 @@ async def upload_document(
             },
         ) from exc
 
-    # 4. Generate grounded response
-    try:
-        return StreamingResponse(
-            generate_response(message=message, context=extracted_text),
-            media_type="text/plain",
-        )
-    except LLMConfigError as exc:
-        logger.error("LLM configuration error: %s", exc)
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "LLM_NOT_CONFIGURED",
-                "message": "The AI service is not properly configured.",
-            },
-        ) from exc
-    except LLMGenerationError as exc:
-        logger.error("LLM generation error: %s", exc)
-        raise HTTPException(
-            status_code=502,
-            detail={
-                "code": "LLM_GENERATION_FAILED",
-                "message": "The AI service failed to generate a response.",
-            },
-        ) from exc
+    return DocumentUploadResponse(
+        document_id=document.id,
+        filename=document.filename,
+        chunk_count=chunk_count,
+        created_at=document.created_at,
+    )

@@ -12,7 +12,7 @@
 - [x] V1 — AI Chat
 - [x] V2 — AI Reads One Document
 
-- [ ] V3 — Chunking
+- [x] V3 — Chunking
 - [ ] V4 — Embeddings & Semantic Retrieval
 - [ ] V5 — Vector Database
 - [ ] V6 — Conversation History
@@ -75,14 +75,14 @@
 **Concept:** Chunking
 
 ### Deliverables
-- [ ] Chunking function (~500 tokens, ~50 token overlap)
-- [ ] `chunks` table in PostgreSQL (doc_id, chunk_index, source_filename, text)
-- [ ] Chat flow updated to use all chunks for a document
+- [x] Chunking function (~500 tokens, ~50 token overlap)
+- [x] `chunks` table in PostgreSQL (doc_id, chunk_index, source_filename, text)
+- [x] Chat flow updated to use all chunks for a document
 
 ### Definition of Done
-- [ ] Upload a large PDF, confirm multiple chunks stored
-- [ ] Chat endpoint still answers correctly using all chunks
-- [ ] Can explain: why is sending every chunk on every question wasteful?
+- [x] Upload a large PDF, confirm multiple chunks stored
+- [x] Chat endpoint still answers correctly using all chunks
+- [x] Can explain: why is sending every chunk on every question wasteful?
 
 ---
 

@@ -50,3 +50,26 @@ async def test_extract_text_from_pdf_corrupt():
         await extract_text_from_pdf(corrupt_bytes)
         
     assert "Could not parse the PDF file" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_ingest_document():
+    """Test full document ingestion flow (extract -> chunk -> save)."""
+    from unittest.mock import AsyncMock, patch
+    from app.services.document import ingest_document
+
+    session = AsyncMock()
+    
+    with patch("app.services.document.extract_text_from_pdf", new_callable=AsyncMock) as mock_extract:
+        mock_extract.return_value = "Mocked PDF content."
+        with patch("app.services.document.chunk_text") as mock_chunk:
+            mock_chunk.return_value = ["chunk 1", "chunk 2"]
+            
+            doc, count = await ingest_document(b"dummy bytes", "test.pdf", session)
+            
+            assert doc.filename == "test.pdf"
+            assert count == 2
+            
+            assert session.add.call_count == 3
+            session.commit.assert_called_once()
+            session.refresh.assert_called_once_with(doc)

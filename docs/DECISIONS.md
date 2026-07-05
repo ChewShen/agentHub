@@ -37,3 +37,17 @@
   
 4. What happend if you skip this version?
 - Files cannot be upload for the LLM to read/refering/grounding to, making a higher chance of hallucination and losses the point of the whole RAG project.
+
+## V3 -  Chunking
+1. What is built/added
+- Chucking is added. Chunking is a way to separate a file, depending on the chuncking size to let the separate chunk can be store in the vector database. So if a large text can be chunked down to some specific part, and when question or propmt is asked, it try to get the best possible match of the vector for both question and from the chuncked document at database to provide the specific answer according to the question so it does not waste resources to scan the full documents every time.
+
+2. Why split the upload and chat into two separate endpoints?
+- In V2, uploading the file and asking a question happened in one single request. In V3, we split them so that a document is uploaded and chunked *once* (Phase 1), and then you can ask as many questions as you want using the `document_id` (Phase 2). This prevents having to re-upload the same heavy PDF every time you want to ask a follow-up question.
+   
+3. Trade-off
+- Since the message and the document upload is now separate, now we will have 2 api call and frontend need to fetch the data from the database first then handle the message, which may introduce latency and more bugs.
+- We have different since of chunck as we are not hard cutting them, instead separate them using paragraph or natural boundary, which may affect how we score them later
+ 
+4. What happend if you skip this version?
+- It will become back to the normal chatbot style as you need to reupload the document everytime if you wanted to ask the same topic from the same document.

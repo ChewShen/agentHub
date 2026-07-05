@@ -29,9 +29,9 @@ GROUNDED_PROMPT = (
     "You are AgentHub, a helpful AI assistant.\n"
     "Answer questions based ONLY on the provided document context below.\n"
     "If the answer is not in the document, say so — do not make things up.\n\n"
-    "--- DOCUMENT ---\n"
+    "--- DOCUMENT CONTEXT ---\n"
     "{context}\n"
-    "--- END DOCUMENT ---"
+    "--- END DOCUMENT CONTEXT ---"
 )
 
 
@@ -91,10 +91,10 @@ def _get_client() -> genai.Client:
 # ---------------------------------------------------------------------------
 
 
-async def generate_response(message: str, context: str | None = None) -> AsyncGenerator[str, None]:
+async def generate_response(message: str, chunks: list[str] | None = None) -> AsyncGenerator[str, None]:
     """Stream a Gemini response for the given user message.
 
-    If context is provided, it uses a grounded prompt containing the document text.
+    If chunks are provided, it uses a grounded prompt containing the chunk texts.
     Yields text chunks as they arrive from the Gemini API.
 
     Raises:
@@ -103,8 +103,10 @@ async def generate_response(message: str, context: str | None = None) -> AsyncGe
     client = _get_client()
 
     system_instruction = SYSTEM_PROMPT
-    if context:
-        system_instruction = GROUNDED_PROMPT.format(context=context)
+    if chunks:
+        context_parts = [f"[Chunk {i}]\n{chunk}\n" for i, chunk in enumerate(chunks)]
+        context_str = "\n".join(context_parts)
+        system_instruction = GROUNDED_PROMPT.format(context=context_str)
 
     config = types.GenerateContentConfig(
         system_instruction=system_instruction,
