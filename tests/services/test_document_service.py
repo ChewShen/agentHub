@@ -54,22 +54,29 @@ async def test_extract_text_from_pdf_corrupt():
 
 @pytest.mark.asyncio
 async def test_ingest_document():
-    """Test full document ingestion flow (extract -> chunk -> save)."""
-    from unittest.mock import AsyncMock, patch
+    """Test full document ingestion flow (extract -> chunk -> embed -> save)."""
+    from unittest.mock import AsyncMock, MagicMock, patch
     from app.services.document import ingest_document
 
     session = AsyncMock()
+    session.add = MagicMock()
     
     with patch("app.services.document.extract_text_from_pdf", new_callable=AsyncMock) as mock_extract:
         mock_extract.return_value = "Mocked PDF content."
         with patch("app.services.document.chunk_text") as mock_chunk:
             mock_chunk.return_value = ["chunk 1", "chunk 2"]
-            
-            doc, count = await ingest_document(b"dummy bytes", "test.pdf", session)
-            
-            assert doc.filename == "test.pdf"
-            assert count == 2
-            
-            assert session.add.call_count == 3
-            session.commit.assert_called_once()
-            session.refresh.assert_called_once_with(doc)
+            with patch("app.services.document.embed_texts", new_callable=AsyncMock) as mock_embed:
+                mock_embed.return_value = [[0.1, 0.2], [0.3, 0.4]]
+                
+                doc, count = await ingest_document(b"dummy bytes", "test.pdf", session)
+                
+                assert doc.filename == "test.pdf"
+                assert count == 2
+                
+                # session.add called 1 for document, 2 for chunks
+                assert session.add.call_count == 3
+                session.commit.assert_called_once()
+                session.refresh.assert_called_once_with(doc)
+                
+                # Verify embed_texts was called with the chunks
+                mock_embed.assert_called_once_with(["chunk 1", "chunk 2"])

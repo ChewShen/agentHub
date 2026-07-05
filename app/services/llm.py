@@ -127,3 +127,25 @@ async def generate_response(message: str, chunks: list[str] | None = None) -> As
         raise LLMGenerationError(
             f"Gemini generation failed: {exc}"
         ) from exc
+
+
+async def generate_response_full(message: str, chunks: list[str] | None = None) -> str:
+    """Generate a complete (non-streaming) Gemini response.
+    
+    Consumes the generator from generate_response and returns the concatenated string.
+    
+    Args:
+        message: The user's question.
+        chunks: Optional list of document text chunks for context.
+        
+    Returns:
+        The full text response from the model.
+        
+    Raises:
+        LLMGenerationError: If the generation fails.
+    """
+    parts = []
+    async for chunk_text in generate_response(message, chunks=chunks):
+        parts.append(chunk_text)
+        
+    return "".join(parts)

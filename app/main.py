@@ -10,6 +10,7 @@ from app.core.config import get_settings
 from app.core.database import close_db, init_db
 from app.routers.chat import router as chat_router
 from app.routers.documents import router as documents_router
+from app.services.embedding import init_embedding_client
 from app.services.llm import init_llm_client
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan — initialise shared resources on startup."""
     settings = get_settings()
     init_llm_client(settings)
-    logger.info("LLM client initialised (model=%s)", settings.gemini_model)
+    init_embedding_client(settings)
+    logger.info("LLM and Embedding clients initialised (model=%s, emb_model=%s)", settings.gemini_model, settings.gemini_embedding_model)
     await init_db()
     yield
     await close_db()

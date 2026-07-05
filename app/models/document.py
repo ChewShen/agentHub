@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import ForeignKey, Integer, String, Text, DateTime
+from sqlalchemy import ForeignKey, Integer, String, Text, DateTime, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -32,5 +32,6 @@ class Chunk(Base):
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     source_filename: Mapped[str] = mapped_column(String, nullable=False)
+    embedding: Mapped[list[float] | None] = mapped_column(JSON, nullable=True)
 
     document: Mapped["Document"] = relationship("Document", back_populates="chunks")

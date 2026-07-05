@@ -37,52 +37,70 @@ class TestChatEndpoint:
         return ASGITransport(app=app)
 
     @pytest.mark.asyncio
-    @patch("app.routers.chat.generate_response")
-    async def test_chat_returns_streamed_response(
+    @patch("app.routers.chat.generate_response_full", new_callable=AsyncMock)
+    async def test_chat_without_document_id(
         self, mock_generate: AsyncMock, transport: ASGITransport
     ) -> None:
-        """POST /chat with a valid message returns 200 with streamed text."""
-        mock_generate.return_value = _fake_stream("test")
+        """POST /chat with a valid message returns 200 with JSON response and empty sources."""
+        mock_generate.return_value = "Hello from AgentHub!"
 
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post("/chat", json={"message": "Hello!"})
 
         assert response.status_code == 200
-        assert response.text == "Hello from AgentHub!"
-        assert response.headers["content-type"] == "text/plain; charset=utf-8"
+        data = response.json()
+        assert data["response"] == "Hello from AgentHub!"
+        assert data["sources"] == []
+        mock_generate.assert_called_once_with("Hello!", chunks=None)
 
     @pytest.mark.asyncio
-    @patch("app.routers.chat.generate_response")
-    @patch("app.routers.chat.get_document_chunks")
+    @patch("app.routers.chat.generate_response_full", new_callable=AsyncMock)
+    @patch("app.routers.chat.retrieve_top_k", new_callable=AsyncMock)
+    @patch("app.routers.chat.embed_text", new_callable=AsyncMock)
     async def test_chat_with_document_id_success(
-        self, mock_get_chunks: AsyncMock, mock_generate: AsyncMock, transport: ASGITransport
+        self, mock_embed: AsyncMock, mock_retrieve: AsyncMock, mock_generate: AsyncMock, transport: ASGITransport
     ) -> None:
-        """POST /chat with document_id loads chunks and streams response."""
+        """POST /chat with document_id retrieves chunks and returns JSON response with sources."""
         import uuid
+        from app.services.retrieval import ScoredChunk
         from app.models.document import Chunk
         
         doc_id = str(uuid.uuid4())
-        mock_get_chunks.return_value = [Chunk(text="chunk 1"), Chunk(text="chunk 2")]
-        mock_generate.return_value = _fake_stream("test")
+        
+        mock_embed.return_value = [0.1, 0.2]
+        
+        c1 = Chunk(chunk_index=0, text="chunk 1", source_filename="test.pdf")
+        c2 = Chunk(chunk_index=1, text="chunk 2", source_filename="test.pdf")
+        mock_retrieve.return_value = [ScoredChunk(chunk=c1, score=0.9), ScoredChunk(chunk=c2, score=0.8)]
+        
+        mock_generate.return_value = "Based on the document..."
         
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post("/chat", json={"message": "Hi", "document_id": doc_id})
             
         assert response.status_code == 200
-        assert response.text == "Hello from AgentHub!"
+        data = response.json()
+        assert data["response"] == "Based on the document..."
+        assert len(data["sources"]) == 2
+        assert data["sources"][0]["text"] == "chunk 1"
+        assert data["sources"][0]["score"] == 0.9
         
-        mock_get_chunks.assert_called_once()
+        mock_embed.assert_called_once_with("Hi")
+        mock_retrieve.assert_called_once()
         mock_generate.assert_called_once_with("Hi", chunks=["chunk 1", "chunk 2"])
 
     @pytest.mark.asyncio
-    @patch("app.routers.chat.get_document_chunks")
+    @patch("app.routers.chat.retrieve_top_k", new_callable=AsyncMock)
+    @patch("app.routers.chat.embed_text", new_callable=AsyncMock)
     async def test_chat_with_invalid_document_id(
-        self, mock_get_chunks: AsyncMock, transport: ASGITransport
+        self, mock_embed: AsyncMock, mock_retrieve: AsyncMock, transport: ASGITransport
     ) -> None:
         """POST /chat with document_id not found returns 404."""
         import uuid
         doc_id = str(uuid.uuid4())
-        mock_get_chunks.return_value = []
+        
+        mock_embed.return_value = [0.1, 0.2]
+        mock_retrieve.return_value = []
         
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post("/chat", json={"message": "Hi", "document_id": doc_id})
@@ -107,7 +125,7 @@ class TestChatEndpoint:
         assert response.status_code == 422
 
     @pytest.mark.asyncio
-    @patch("app.routers.chat.generate_response")
+    @patch("app.routers.chat.generate_response_full", new_callable=AsyncMock)
     async def test_chat_returns_503_on_config_error(
         self, mock_generate: AsyncMock, transport: ASGITransport
     ) -> None:
@@ -122,7 +140,7 @@ class TestChatEndpoint:
         assert body["detail"]["code"] == "LLM_NOT_CONFIGURED"
 
     @pytest.mark.asyncio
-    @patch("app.routers.chat.generate_response")
+    @patch("app.routers.chat.generate_response_full", new_callable=AsyncMock)
     async def test_chat_returns_502_on_generation_error(
         self, mock_generate: AsyncMock, transport: ASGITransport
     ) -> None:

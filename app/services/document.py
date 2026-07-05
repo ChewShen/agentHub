@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.document import Chunk, Document
 from app.services.chunking import chunk_text
+from app.services.embedding import embed_texts
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,7 @@ async def ingest_document(file_bytes: bytes, filename: str, session: AsyncSessio
     """
     full_text = await extract_text_from_pdf(file_bytes)
     chunk_strings = chunk_text(full_text)
+    embeddings = await embed_texts(chunk_strings)
     
     document = Document(filename=filename)
     session.add(document)
@@ -95,6 +97,7 @@ async def ingest_document(file_bytes: bytes, filename: str, session: AsyncSessio
             chunk_index=i,
             text=text,
             source_filename=filename,
+            embedding=embeddings[i] if embeddings else None,
         )
         session.add(chunk)
         
