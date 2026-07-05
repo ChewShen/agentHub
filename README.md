@@ -21,7 +21,7 @@ The project is built version by version, following a learning-first approach:
 | V8 | Repository Intelligence | Understand code, not just documents |
 | V9 | Evaluation | Prove retrieval quality with metrics |
 
-> **Current version: V0 — Foundation**
+> **Current version: V3 — Chunking**
 
 ## Tech Stack
 
@@ -76,23 +76,26 @@ pytest tests/ -v
 
 ## Project Structure
 
-```
+```text
 agentHub/
+├── alembic/                  # Database migrations
 ├── app/
-│   ├── main.py              # FastAPI application + /health endpoint
-│   └── core/
-│       └── config.py         # Pydantic BaseSettings (env config)
-├── tests/
-│   └── test_health.py        # Integration tests
+│   ├── main.py               # FastAPI application + lifespan events
+│   ├── core/                 # Config and database setup
+│   ├── models/               # SQLAlchemy ORM models (Document, Chunk)
+│   ├── routers/              # API endpoints (chat, documents)
+│   ├── schemas/              # Pydantic validation models
+│   └── services/             # Core business logic (chunking, llm, document extraction)
+├── tests/                    # Integration and unit tests
 ├── docs/
 │   ├── ROADMAP.md            # Why each version exists
 │   ├── milestones.md         # Progress checklist per version
-│   └── decision.md           # Architecture decision log
+│   └── DECISIONS.md          # Architecture decision log
 ├── docker-compose.yml        # API + PostgreSQL + Qdrant
 ├── Dockerfile
 ├── requirements.txt
 ├── .env.example
-└── agents.md                 # Development rules and conventions
+└── AGENTS.md                 # Development rules and conventions
 ```
 
 ## Philosophy
